@@ -85,5 +85,6 @@ class Mesh
         vector<Face> faces;
 
         void BuildFromObj(std::string filename);
+        void ShowResult();
         vector<vector<Halfedge*>> Boundaries();
 };

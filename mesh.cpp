@@ -228,22 +228,22 @@ void Mesh::BuildFromObj(string filename)
             {
                 e.o = eo;
                 eo->o = &e;
-                cerr << "gotcha!" << endl;
+                // cerr << "gotcha!" << endl;
                 break; 
             }
         }
     }
 
-    for(int m = 0; m < faces.size(); m++)
-    {
-        Face t = faces[m];
-        vector<Halfedge*> fe = t.Edges();
-        for (int n = 0; n < fe.size(); n++)
-        {
-            cout << fe[n]->index << " ";
-        }
-        cout << endl;
-    }
+    // for(int m = 0; m < faces.size(); m++)
+    // {
+    //     Face t = faces[m];
+    //     vector<Halfedge*> fe = t.Edges();
+    //     for (int n = 0; n < fe.size(); n++)
+    //     {
+    //         cout << fe[n]->index << " ";
+    //     }
+    //     cout << endl;
+    // }
 
     // for(int m = 0; m < vertice.size(); m++)
     // {
@@ -259,33 +259,85 @@ void Mesh::BuildFromObj(string filename)
 
 vector<vector<Halfedge*>> Mesh::Boundaries()
 {
-
+    vector<vector <Halfedge*>> boundaries;
+    return boundaries;
 }
 
 vector<Halfedge*>Face::Edges()
 {
     vector<Halfedge*> res;
-    int end_edge = this->e->prev->index;
-    int now_edge = this->e->index;
-    while(now_edge != end_edge)
+    Halfedge* start_e = this->e;
+    res.push_back(start_e);
+
+    Halfedge* next_e = start_e->next;
+    while(next_e != nullptr)
     {
-        cerr << now_edge << ": " << end_edge << endl;
-        now_edge = e->index;
-        res.push_back(e);
-        e = e->next;
+        if (next_e == start_e)
+            break;
+        res.push_back(next_e);
+        next_e = next_e->next;
     }
+    
     return res;
 }
 
 vector<Halfedge*>Vertex::Edges()
 {
     vector<Halfedge*> res;
-    int end_edge = this->e->index;
-    // int now_edge = this
+    Halfedge*  start_e = this->e;
+    res.push_back(start_e);
+
+    Halfedge* next_e = start_e->next->o;
+    
+    while(next_e != nullptr)
+    {
+        if (next_e == start_e)
+            break;
+        res.push_back(next_e);
+        next_e = next_e->next->o;
+    }
 
     return res; 
 }
 
+void Mesh::ShowResult()
+{
+    cout << "# of Vertice: " << vertice.size() << endl;
+    vector<int> std_v(vertice.size(), 0);
+    
+    for(int i = 0; i < vertice.size(); i++)
+    {
+        Vertex v = vertice[i];
+        int valence = v.Edges().size();
+        std_v[valence]++;
+    }
+    for(int i = 0; i < std_v.size(); i++)
+    {
+        if(std_v[i] != 0)
+            cout << "valence-" << i << ": " << std_v[i] << endl;
+    }
+
+    cout << "# of Face: " << faces.size() << endl;
+    vector<int> std_f(faces.size(), 0);
+
+    for(int i = 0; i < faces.size(); i++)
+    {
+        Face f = faces[i];
+        int degree = f.Edges().size();
+        std_f[degree]++;
+    }
+    for(int i = 0; i < std_f.size(); i++)
+    {
+        if(std_f[i] != 0)
+            cout << "defree-" << i << ": " << std_f[i] << endl;
+    }
+
+    // for(int i = 0;i < faces.size(); i++)
+    // {
+    //     Face f = faces[i];
+    //     cout << f.Edges().size() << endl;
+    // }
+}
 
 int main()
 {
@@ -294,10 +346,12 @@ int main()
 
     cout << "input the mesh" << endl;
     // cin >> filename;
-    filename = "test.obj";
+    filename = "cow.obj";
     cout << "Loading the " << filename << endl;
     m.BuildFromObj(filename);
     cout << "Result" << endl;
+
+    m.ShowResult();
     // m.Boundaries();
 
     return 0;
