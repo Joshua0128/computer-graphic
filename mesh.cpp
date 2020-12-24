@@ -260,6 +260,18 @@ void Mesh::BuildFromObj(string filename)
 vector<vector<Halfedge*>> Mesh::Boundaries()
 {
     vector<vector <Halfedge*>> boundaries;
+
+    // for(int i = 0; i < halfedges.size(); i++)
+    // {
+    //     if (halfedges[i].index == -1)
+    //         break;
+    //     if (halfedges.o == nullptr)
+    //     {
+
+    //     }
+    // }
+
+
     return boundaries;
 }
 
@@ -284,7 +296,12 @@ vector<Halfedge*>Face::Edges()
 vector<Halfedge*>Vertex::Edges()
 {
     vector<Halfedge*> res;
-    Halfedge*  start_e = this->e;
+    Halfedge* start_e = this->e;
+    // while(start_e->o != nullptr)
+    // {
+    //     start_e = start_e->o->prev;
+    //     cerr << start_e << endl;
+    // }
     res.push_back(start_e);
 
     Halfedge* next_e = start_e->next->o;
@@ -311,7 +328,7 @@ void Mesh::ShowResult()
         int valence = v.Edges().size();
         std_v[valence]++;
     }
-    for(int i = 0; i < std_v.size(); i++)
+    for(int i = 0; i < vertice.size(); i++)
     {
         if(std_v[i] != 0)
             cout << "valence-" << i << ": " << std_v[i] << endl;
@@ -329,7 +346,7 @@ void Mesh::ShowResult()
     for(int i = 0; i < std_f.size(); i++)
     {
         if(std_f[i] != 0)
-            cout << "defree-" << i << ": " << std_f[i] << endl;
+            cout << "degree-" << i << ": " << std_f[i] << endl;
     }
 
     // for(int i = 0;i < faces.size(); i++)
@@ -346,7 +363,7 @@ int main()
 
     cout << "input the mesh" << endl;
     // cin >> filename;
-    filename = "cow.obj";
+    filename = "lilium.obj";
     cout << "Loading the " << filename << endl;
     m.BuildFromObj(filename);
     cout << "Result" << endl;
