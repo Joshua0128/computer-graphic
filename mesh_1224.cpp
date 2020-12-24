@@ -95,6 +95,9 @@ void Mesh::BuildFromObj(string filename)
     int vIdx = 0, fIdx = 0, heIdx = 0;
     
     // reserve
+    // vertice.resize(obj_size[0]);
+    // faces.resize(obj_size[1]);
+    // halfedges.resize(obj_size[2]);
     vertice.reserve(obj_size[0]);
     faces.reserve(obj_size[1]);
     halfedges.reserve(obj_size[2]);
@@ -162,7 +165,7 @@ void Mesh::BuildFromObj(string filename)
     }
     
     // assign vertex index, pos.
-    for(int i = 0; i < h_v.size(); i++)
+    for(int i =0; i < h_v.size(); i++)
     {
         Vertex v;
         v.index = i+1;
@@ -172,14 +175,22 @@ void Mesh::BuildFromObj(string filename)
             if (h_v[i].size() < 3)
                 cerr << "out of bound" << i << endl;
             p[j] = h_v[i][j];
+            // cout << h_v[i][j] << " ";
         }
+        // cout << p.x << " " << p.y << " " << p.z << endl;
         v.pos = p;
         vertice[i] = v;
     }
 
+    // verify vertex in vertice
+    // for(int i = 0; i < vertice.size(); i++)
+    // {
+    //     cout << i << ": " << vertice[i].pos.x << ", " << vertice[i].pos.y << ", " << vertice[i].pos.z <<endl;
+    // }
+
 
     /*
-        assign index to f.
+    [v] assign index to f.
     */
     for(int i = 0;i < h_f.size(); i++)
     {
@@ -188,8 +199,11 @@ void Mesh::BuildFromObj(string filename)
         faces[i] = f;
     }
 
+
+
+
     // a map to store record of vertex-halfedge
-    unordered_map<int, vector<Halfedge*>> i_edges_map;
+    unordered_map<int, vector<Halfedge*>> o_edges_map;
 
     heIdx = 0;
     for(int i = 0;i < h_f.size(); i++)
@@ -198,82 +212,96 @@ void Mesh::BuildFromObj(string filename)
             assign v, f, index to e
             add e into halfedges
             assign e to f.
-            setup next, prev to e.
             assign e to v.
         */
         for(int j = 0; j < h_f[i].size(); j++)
         {
-            Halfedge* e = &halfedges[heIdx];
-            e->index = heIdx;
+            Halfedge e;
+            e.index = heIdx;
             int vid = int(h_f[i][j]);
-            e->v = &vertice[vid-1];
-            i_edges_map[vid].push_back(e);
-            vertice[vid-1].e = e;
-            e->f = &faces[i];
-            
-            e->next = &halfedges[(heIdx+1)%h_f[i].size()];
-            e->prev = &halfedges[(heIdx + h_f[i].size() - 1)%h_f[i].size()];
-            
+            e.v = &vertice[vid-1];
+
+            // cout << e.index << endl;
+            vertice[vid-1].e = &e;
+            e.f = &faces[i];
+            halfedges[heIdx] = e;
             heIdx++;
+            
+            // cout << e.f->index << endl;
             if(faces[i].e == nullptr)
-                faces[i].e = e;
+                faces[i].e = &e;
+            
+            // cout << faces[i].e->index << endl;
         }
-    }
-
-    for(int k = 0; k < heIdx; k++)
-    {
-        Halfedge* e = &halfedges[k];
-        // cout << e->v->index << endl;
-        for(int i = 0; i < 3; i++)
+        /*
+            assgin next, prev to e.
+        */
+        for(int j = 0; j < h_f[i].size(); j++)
         {
-            cout << e->v->index << " ";
-            e = e->prev;
+            e.g
         }
-        cout << endl;
+        cout << faces[i].e->index << endl;
     }
 
+    for(int i = 0; i < h_f.size(); i++)
+    {
+        cout << faces[i].e->index << endl;
+        // Halfedge tmp = *(faces[i].e);
+        // cout << tmp.index << endl;     
+        // cout << i << endl;
+        // cout << faces[i].index << endl;
+        // cout << &(faces[i].e) << endl;
+        // cout << faces[i].e->index << endl;
+        // cout << &(faces[i].e->index) << endl;
+    }
+
+
+    // for(int i = 0; i <  heIdx; i++)
+    // {
+    //     cout << halfedges[i].v->index << endl;
+    //     cout << halfedges[i].f->index << endl;
+    // }
+
+    // for(int i = 0; i < faces.size(); i++)
+    // {
+    //     cout << faces[i].index << " ";
+    //     // cout << faces[i].e->index << endl;
+    //     Face t = faces[i];
+    //     Halfedge et = *t.e;
+    //     cout << et.index << endl;
+    //     cout << faces[i].e->index << endl;
+    //     // cout << vertice[i].index << endl;
+    //     // cout << vertice[i].pos.x << endl;
+    //     // cout << vertice[i].e->index << endl;
+    // }
+
+
+
+    // for(int i = 0;i < h_f.size(); i++)
+    // {
+    //     for(int j = 0; j < h_f[i].size(); j++)
+    //     {
+    //         Halfedge e;
+    //         e.index = heIdx;
+    //         int vid = int(h_f[i][j]);
+    //         // if (vertice[vid].e == nullptr)
+    //         //     cerr << "error" << endl; 
+    //         // cout << vertice[vid].index << endl;
+    //         e.v = &vertice[vid];
+    //         cout << vid << endl;
+    //         // vertice[0].e = nullptr;
+    //         e.f = &faces[i];
+    //         halfedges[heIdx] = e;
+    //         heIdx++;
+            
+    //         if(faces[i].e == nullptr)
+    //             faces[i].e = &e;
+    //     }
+    // }
 
     /*
-        setup opposite edge
+    [ ] assign next, prev to e;
     */
-//    cout << heIdx;
-    for(int i = 0;i < heIdx; i++)
-    {
-        Halfedge& e = halfedges[i];
-        // cout << e.v->index << endl;
-        // cout << e.prev->v->index << endl;
-        
-        // if (e.o)
-        //     continue;
-        
-        vector<Halfedge*>& i_edges = i_edges_map[e.prev->v->index];
-        for (int j = 0; j < i_edges.size(); j++)
-        {
-            // cout << e.prev->v->index << ": ";
-            // cout << i_edges[j]->v->index << ", ";
-            // Halfedge* eo = i_edges[j];
-            // if (eo->index == e.index)
-            //     continue;
-            // if (eo->prev->v->index == e.v->index)
-            // {
-            //     e.o = eo;
-            //     eo->o = &e;
-            //     cerr << "gotchar!";
-            //     break; 
-            // }
-        }
-        // cout << endl;
-    }
-
-    for(int i = 0;i < heIdx; i++)
-    {
-        Halfedge& e = halfedges[i];
-        if(e.o != nullptr)
-            cout << e.o->index << endl;
-    }
-
-
-
 
 
 }
@@ -287,7 +315,7 @@ int main()
 
     cout << "input the mesh" << endl;
     // cin >> filename;
-    filename = "test.obj";
+    filename = "cow.obj";
     cout << "Loading the " << filename << endl;
     m.BuildFromObj(filename);
     cout << "Result" << endl;

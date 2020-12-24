@@ -52,7 +52,7 @@ class Face
 class Halfedge
 {
     public:
-        Halfedge* opposite;
+        Halfedge* o;
         Halfedge* next;
         Halfedge* prev;
         int index;
@@ -66,7 +66,7 @@ class Halfedge
 
     void init()
     {
-        opposite = nullptr;
+        o = nullptr;
         next = nullptr;
         prev = nullptr;
         index = -1;
@@ -83,7 +83,6 @@ class Mesh
         vector<Halfedge> halfedges;
         vector<Vertex> vertice;
         vector<Face> faces;
-        // int index = 120;
 
         void BuildFromObj(std::string filename);
         vector<vector<Halfedge*>> Boundaries();
