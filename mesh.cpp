@@ -83,12 +83,6 @@ void Mesh::BuildFromObj(string filename)
 {
     obj_size = getObjSize(filename);
 
-    // for (int i = 0; i < 3; i++)
-    // {
-    //     cout << obj_size[i] << " ";
-    // }
-
-
     fstream fin;
     fin.open(filename, ios::in);
 
@@ -124,16 +118,13 @@ void Mesh::BuildFromObj(string filename)
     while(fin.getline(line, sizeof(line), '\n'))
     {
         string result = string(line);
-        // cout << result << endl;
         string type = result.substr(0, result.find(" "));
-        // cout << type << endl;
         if (type != "v" && type != "f")
         {
             continue;
         }
-        // cout << result << endl;
+
         int foundPos = result.find("//");
-        // cout << foundPos;
 
         // align different format
         while (foundPos != std::string::npos)
@@ -141,13 +132,8 @@ void Mesh::BuildFromObj(string filename)
             result = result.replace(foundPos, 2, "");
             foundPos = result.find("//");
         }
-        // cout << result << endl;
+
         vector<float> coord = getCoordFromStr(result);
-        // for(int i = 0; i < coord.size(); i++)
-        // {
-        //     cout << coord[i] << " ";
-        // }
-        // cout << endl;
 
         if (type == "v")
         {
@@ -201,6 +187,7 @@ void Mesh::BuildFromObj(string filename)
             setup next, prev to e.
             assign e to v.
         */
+        int anchor = heIdx;
         for(int j = 0; j < h_f[i].size(); j++)
         {
             Halfedge* e = &halfedges[heIdx];
@@ -211,8 +198,8 @@ void Mesh::BuildFromObj(string filename)
             vertice[vid-1].e = e;
             e->f = &faces[i];
             
-            e->next = &halfedges[(heIdx+1)%h_f[i].size()];
-            e->prev = &halfedges[(heIdx + h_f[i].size() - 1)%h_f[i].size()];
+            e->next = &halfedges[anchor + (j + 1)%h_f[i].size()];
+            e->prev = &halfedges[anchor + (j + h_f[i].size() - 1)%h_f[i].size()];
             
             heIdx++;
             if(faces[i].e == nullptr)
@@ -220,64 +207,88 @@ void Mesh::BuildFromObj(string filename)
         }
     }
 
-    for(int k = 0; k < heIdx; k++)
-    {
-        Halfedge* e = &halfedges[k];
-        // cout << e->v->index << endl;
-        for(int i = 0; i < 3; i++)
-        {
-            cout << e->v->index << " ";
-            e = e->prev;
-        }
-        cout << endl;
-    }
-
-
     /*
-        setup opposite edge
+        setup o edge of e
     */
-//    cout << heIdx;
+
     for(int i = 0;i < heIdx; i++)
     {
         Halfedge& e = halfedges[i];
-        // cout << e.v->index << endl;
-        // cout << e.prev->v->index << endl;
-        
-        // if (e.o)
-        //     continue;
+
+        if (e.o)
+            continue;
         
         vector<Halfedge*>& i_edges = i_edges_map[e.prev->v->index];
         for (int j = 0; j < i_edges.size(); j++)
         {
-            // cout << e.prev->v->index << ": ";
-            // cout << i_edges[j]->v->index << ", ";
-            // Halfedge* eo = i_edges[j];
-            // if (eo->index == e.index)
-            //     continue;
-            // if (eo->prev->v->index == e.v->index)
-            // {
-            //     e.o = eo;
-            //     eo->o = &e;
-            //     cerr << "gotchar!";
-            //     break; 
-            // }
+            Halfedge* eo = i_edges[j];
+            if (eo->index == e.index)
+                continue;
+            if (eo->prev->v->index == e.v->index)
+            {
+                e.o = eo;
+                eo->o = &e;
+                cerr << "gotcha!" << endl;
+                break; 
+            }
         }
-        // cout << endl;
     }
 
-    for(int i = 0;i < heIdx; i++)
+    // for(int m = 0; m < faces.size(); m++)
+    // {
+    //     Face t = faces[m];
+    //     vector<Halfedge*> fe = t.Edges();
+    //     for (int n = 0; n < fe.size(); n++)
+    //     {
+    //         cout << fe[n]->index << " ";
+    //     }
+    //     cout << endl;
+    // }
+
+    for(int m = 0; m < vertice.size(); m++)
     {
-        Halfedge& e = halfedges[i];
-        if(e.o != nullptr)
-            cout << e.o->index << endl;
+        Vertex t = vertice[m];
+        vector<Halfedge*> fe = t.Edges();
+        for (int n = 0; n < fe.size(); n++)
+        {
+            cout << fe[n]->index << " ";
+        }
+        cout << endl;
     }
+}
 
-
-
-
+vector<vector<Halfedge*>> Mesh::Boundaries()
+{
 
 }
 
+vector<Halfedge*>Face::Edges()
+{
+    vector<Halfedge*> res;
+    int end_edge = this->e->prev->index;
+    int now_edge;
+    while(now_edge != end_edge)
+    {
+        now_edge = this->e->index;
+        res.push_back(e);
+        e = e->next;
+    }
+    return res;
+}
+
+vector<Halfedge*>Vertex::Edges()
+{
+    vector<Halfedge*> res;
+    int end_edge = this->e->prev->index;
+    int now_edge;
+    while(now_edge != end_edge)
+    {
+        now_edge = this->e->index;
+        res.push_back(e);
+        e = e->next;
+    }
+    return res; 
+}
 
 
 int main()
