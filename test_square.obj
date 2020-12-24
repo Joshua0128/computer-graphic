@@ -1,0 +1,16 @@
+#obj file.
+#note: all indices are 1-based.
+#time created: Tue Jun 13 17:55:11 2017
+
+v 0 0 0
+v 1 0 0
+v 1 1 0
+v 0 1 0
+v 2 0 0
+v 2 1 0
+
+#vertices:4
+
+f 1// 2// 3// 4//
+f 2// 5// 6// 3//
+#faces:2

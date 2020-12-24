@@ -234,20 +234,9 @@ void Mesh::BuildFromObj(string filename)
         }
     }
 
-    // for(int m = 0; m < faces.size(); m++)
-    // {
-    //     Face t = faces[m];
-    //     vector<Halfedge*> fe = t.Edges();
-    //     for (int n = 0; n < fe.size(); n++)
-    //     {
-    //         cout << fe[n]->index << " ";
-    //     }
-    //     cout << endl;
-    // }
-
-    for(int m = 0; m < vertice.size(); m++)
+    for(int m = 0; m < faces.size(); m++)
     {
-        Vertex t = vertice[m];
+        Face t = faces[m];
         vector<Halfedge*> fe = t.Edges();
         for (int n = 0; n < fe.size(); n++)
         {
@@ -255,6 +244,17 @@ void Mesh::BuildFromObj(string filename)
         }
         cout << endl;
     }
+
+    // for(int m = 0; m < vertice.size(); m++)
+    // {
+    //     Vertex t = vertice[m];
+    //     vector<Halfedge*> fe = t.Edges();
+    //     for (int n = 0; n < fe.size(); n++)
+    //     {
+    //         cout << fe[n]->index << " ";
+    //     }
+    //     cout << endl;
+    // }
 }
 
 vector<vector<Halfedge*>> Mesh::Boundaries()
@@ -266,10 +266,11 @@ vector<Halfedge*>Face::Edges()
 {
     vector<Halfedge*> res;
     int end_edge = this->e->prev->index;
-    int now_edge;
+    int now_edge = this->e->index;
     while(now_edge != end_edge)
     {
-        now_edge = this->e->index;
+        cerr << now_edge << ": " << end_edge << endl;
+        now_edge = e->index;
         res.push_back(e);
         e = e->next;
     }
@@ -279,14 +280,9 @@ vector<Halfedge*>Face::Edges()
 vector<Halfedge*>Vertex::Edges()
 {
     vector<Halfedge*> res;
-    int end_edge = this->e->prev->index;
-    int now_edge;
-    while(now_edge != end_edge)
-    {
-        now_edge = this->e->index;
-        res.push_back(e);
-        e = e->next;
-    }
+    int end_edge = this->e->index;
+    // int now_edge = this
+
     return res; 
 }
 
@@ -302,5 +298,7 @@ int main()
     cout << "Loading the " << filename << endl;
     m.BuildFromObj(filename);
     cout << "Result" << endl;
+    // m.Boundaries();
+
     return 0;
 }
