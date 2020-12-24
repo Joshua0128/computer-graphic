@@ -15,6 +15,9 @@ using namespace std;
 vector<int> obj_size;
 char line[TMP_SIZE];
 
+vector<vector <float>> h_v;
+vector<vector <float>> h_f;
+
 vector<int> getObjSize(string filename)
 {
     fstream fin;
@@ -79,6 +82,13 @@ vector<float> getCoordFromStr(string str) {
 void Mesh::BuildFromObj(string filename)
 {
     obj_size = getObjSize(filename);
+
+    // for (int i = 0; i < 3; i++)
+    // {
+    //     cout << obj_size[i] << " ";
+    // }
+
+
     fstream fin;
     fin.open(filename, ios::in);
 
@@ -88,9 +98,9 @@ void Mesh::BuildFromObj(string filename)
     vertice.resize(obj_size[0]);
     faces.resize(obj_size[1]);
     halfedges.resize(obj_size[2]);
+    h_v.resize(obj_size[0]);
+    h_f.resize(obj_size[1]);
     
-    // a map to store record of vertex-halfedge
-    unordered_map<int, vector<Halfedge*>> o_edges_map;
 
     while(fin.getline(line, sizeof(line), '\n'))
     {
@@ -114,48 +124,164 @@ void Mesh::BuildFromObj(string filename)
         }
         // cout << result << endl;
         vector<float> coord = getCoordFromStr(result);
-        for(int i = 0; i < coord.size(); i++)
-        {
-            cout << coord[i] << " ";
-        }
-        cout << endl;
+        // for(int i = 0; i < coord.size(); i++)
+        // {
+        //     cout << coord[i] << " ";
+        // }
+        // cout << endl;
 
         if (type == "v")
         {
-            vertice[vIdx] = *new Vertex();
-            vertice[vIdx].index = vIdx;
-            vertice[vIdx].pos = glm::vec3(coord[0], coord[1], coord[2]);
+            h_v[vIdx] = coord;
             vIdx++;
         }
         else if (type == "f")
         {
-            faces[fIdx] = *new Face();
-            faces[fIdx].index = fIdx;
-            
-            // bind vertex and halfedges
-            for (int i = 0; i < coord.size(); i++)
-            {
-                halfedges[heIdx + i] = *new Halfedge();
-                // cout << coord[i] << endl;
-                // cout << vertice[coord[i]].index << endl;
-                // cout << vertice[coord[i]] << endl;
-                Vertex* v = &vertice[coord[i]];
-                halfedges[heIdx + i].v = v;
-                vertice[coord[i]].e = halfedges[heIdx + i];
-                // o_edges_map[vertice[coord[i]]].append(halfedges[heIdx + i]);
-                // halfedges[]
-            }
-
-            // setup next halfedge
-            // for (int i = 0;i < coord.size(); i++)
-            // {
-            //     halfedges[heIdx + i].next = 
-            // }
-
-
+            h_f[fIdx] = coord;
             fIdx++;
         }
     }
+    
+    // assign vertex index, pos.
+    for(int i =0; i < h_v.size(); i++)
+    {
+        Vertex v;
+        v.index = i+1;
+        glm::vec3 p(0.0f);
+        for (int j = 0; j < h_v[i].size(); j++)
+        {
+            if (h_v[i].size() < 3)
+                cerr << "out of bound" << i << endl;
+            p[j] = h_v[i][j];
+            // cout << h_v[i][j] << " ";
+        }
+        // cout << p.x << " " << p.y << " " << p.z << endl;
+        v.pos = p;
+        vertice[i] = v;
+    }
+
+    // verify vertex in vertice
+    // for(int i = 0; i < vertice.size(); i++)
+    // {
+    //     cout << i << ": " << vertice[i].pos.x << ", " << vertice[i].pos.y << ", " << vertice[i].pos.z <<endl;
+    // }
+
+
+    /*
+    [v] assign index to f.
+    */
+    for(int i = 0;i < h_f.size(); i++)
+    {
+        Face f;
+        f.index = i+1;
+        faces[i] = f;
+    }
+
+
+
+
+    // a map to store record of vertex-halfedge
+    unordered_map<int, vector<Halfedge*>> o_edges_map;
+
+    heIdx = 0;
+    for(int i = 0;i < h_f.size(); i++)
+    {
+        /*
+            assign v, f, index to e
+            add e into halfedges
+            assign e to f.
+            assign e to v.
+        */
+        for(int j = 0; j < h_f[i].size(); j++)
+        {
+            Halfedge e;
+            e.index = heIdx;
+            int vid = int(h_f[i][j]);
+            e.v = &vertice[vid-1];
+
+            // cout << e.index << endl;
+            vertice[vid-1].e = &e;
+            e.f = &faces[i];
+            halfedges[heIdx] = e;
+            heIdx++;
+            
+            // cout << e.f->index << endl;
+            if(faces[i].e == nullptr)
+                faces[i].e = &e;
+            
+            // cout << faces[i].e->index << endl;
+        }
+        /*
+            assgin next, prev to e.
+        */
+        for(int j = 0; j < h_f[i].size(); j++)
+        {
+            e.g
+        }
+        cout << faces[i].e->index << endl;
+    }
+
+    for(int i = 0; i < h_f.size(); i++)
+    {
+        cout << faces[i].e->index << endl;
+        // Halfedge tmp = *(faces[i].e);
+        // cout << tmp.index << endl;     
+        // cout << i << endl;
+        // cout << faces[i].index << endl;
+        // cout << &(faces[i].e) << endl;
+        // cout << faces[i].e->index << endl;
+        // cout << &(faces[i].e->index) << endl;
+    }
+
+
+    // for(int i = 0; i <  heIdx; i++)
+    // {
+    //     cout << halfedges[i].v->index << endl;
+    //     cout << halfedges[i].f->index << endl;
+    // }
+
+    // for(int i = 0; i < faces.size(); i++)
+    // {
+    //     cout << faces[i].index << " ";
+    //     // cout << faces[i].e->index << endl;
+    //     Face t = faces[i];
+    //     Halfedge et = *t.e;
+    //     cout << et.index << endl;
+    //     cout << faces[i].e->index << endl;
+    //     // cout << vertice[i].index << endl;
+    //     // cout << vertice[i].pos.x << endl;
+    //     // cout << vertice[i].e->index << endl;
+    // }
+
+
+
+    // for(int i = 0;i < h_f.size(); i++)
+    // {
+    //     for(int j = 0; j < h_f[i].size(); j++)
+    //     {
+    //         Halfedge e;
+    //         e.index = heIdx;
+    //         int vid = int(h_f[i][j]);
+    //         // if (vertice[vid].e == nullptr)
+    //         //     cerr << "error" << endl; 
+    //         // cout << vertice[vid].index << endl;
+    //         e.v = &vertice[vid];
+    //         cout << vid << endl;
+    //         // vertice[0].e = nullptr;
+    //         e.f = &faces[i];
+    //         halfedges[heIdx] = e;
+    //         heIdx++;
+            
+    //         if(faces[i].e == nullptr)
+    //             faces[i].e = &e;
+    //     }
+    // }
+
+    /*
+    [ ] assign next, prev to e;
+    */
+
+
 }
 
 
@@ -167,7 +293,7 @@ int main()
 
     cout << "input the mesh" << endl;
     // cin >> filename;
-    filename = "lilium.obj";
+    filename = "cow.obj";
     cout << "Loading the " << filename << endl;
     m.BuildFromObj(filename);
     cout << "Result" << endl;
