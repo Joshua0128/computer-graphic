@@ -260,6 +260,7 @@ vector<vector<Halfedge*>> Mesh::Boundaries()
 {
     vector<Halfedge*> boundary_e;
     vector<vector <Halfedge*>> boundaries;
+
     int heIdx = 0;
     for (int i = 0; i < halfedges.size(); i++)
     {
@@ -268,9 +269,7 @@ vector<vector<Halfedge*>> Mesh::Boundaries()
             heIdx++;
         }
     }
-    cout << heIdx << endl;
-    // cout << halfedges.size() << endl;
-    // cout << halfedges[0].index << endl;
+
     int archor = heIdx;
     for(int i = 0; i < heIdx; i++)
     {
@@ -287,13 +286,12 @@ vector<vector<Halfedge*>> Mesh::Boundaries()
             boundary_e.push_back(e);
         }
     }
-    cout << archor << endl;
-    cout << boundary_e.size() << endl;
+
     for (int i = 0; i < boundary_e.size(); i++)
     {
-        int start = boundary_e[i]->index;  
+        int start = boundary_e[i]->v->index;  
         for(int j = 0; j < boundary_e.size(); j++)
-        {
+        { 
             if (start == boundary_e[j]->o->v->index)
             {
                 boundary_e[i]->next = boundary_e[j];
@@ -302,7 +300,21 @@ vector<vector<Halfedge*>> Mesh::Boundaries()
         }
     }
 
-
+    while(!boundary_e.empty())
+    {
+        vector<Halfedge*> boundary;
+        Halfedge* start_e = boundary_e.front();
+        boundary.push_back(start_e);
+        boundary_e.erase(boundary_e.begin());
+        Halfedge* next_e = start_e->next; 
+        while(next_e != start_e)
+        {
+            boundary.push_back(next_e);
+            boundary_e.erase(remove(boundary_e.begin(), boundary_e.end(), next_e), boundary_e.end());
+            next_e = next_e->next;
+        }
+        boundaries.push_back(boundary);
+    }
 
     return boundaries;
 }
@@ -329,11 +341,7 @@ vector<Halfedge*>Vertex::Edges()
 {
     vector<Halfedge*> res;
     Halfedge* start_e = this->e;
-    // while(start_e->o != nullptr)
-    // {
-    //     start_e = start_e->o->prev;
-    //     cerr << start_e << endl;
-    // }
+
     res.push_back(start_e);
 
     Halfedge* next_e = start_e->next->o;
@@ -351,6 +359,9 @@ vector<Halfedge*>Vertex::Edges()
 
 void Mesh::ShowResult()
 {
+    vector<vector<Halfedge*>> b;
+    b = this->Boundaries();
+
     cout << "# of Vertice: " << vertice.size() << endl;
     vector<int> std_v(vertice.size(), 0);
     
@@ -381,11 +392,22 @@ void Mesh::ShowResult()
             cout << "degree-" << i << ": " << std_f[i] << endl;
     }
 
-    // for(int i = 0;i < faces.size(); i++)
-    // {
-    //     Face f = faces[i];
-    //     cout << f.Edges().size() << endl;
-    // }
+    cout << "border size: ";
+    if(b.size() == 0)
+    {
+        cout << "none" << endl;
+    } 
+    else
+    {
+        for(int i = 0; i < b.size(); i++)
+        {
+            cout << b[i].size() << " ";
+        }
+        cout << endl;
+    }
+    
+    
+
 }
 
 int main()
@@ -393,13 +415,13 @@ int main()
     Mesh m = Mesh();
     string filename;
 
-    cout << "input the mesh" << endl;
+    // cout << "input the mesh" << endl
     // cin >> filename;
     filename = "roof.obj";
     cout << "Loading the " << filename << endl;
     m.BuildFromObj(filename);
-    m.Boundaries();
-    cout << "Result" << endl;
+    // m.Boundaries();
+    cout << "== Mesh Statics ==" << endl;
 
     m.ShowResult();
     // m.Boundaries();

@@ -59,6 +59,7 @@ class Halfedge
         Vertex* v;
         Face* f;
 
+
     Halfedge()
     {
         init();
@@ -73,6 +74,12 @@ class Halfedge
         v = nullptr;
         f = nullptr;
     }
+
+    bool IsBoundary()
+    {
+        return f == nullptr;
+    }
+
 };
     
 
