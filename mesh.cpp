@@ -206,7 +206,6 @@ void Mesh::BuildFromObj(string filename)
                 faces[i].e = e;
         }
     }
-
     /*
         setup o edge of e
     */
@@ -259,17 +258,50 @@ void Mesh::BuildFromObj(string filename)
 
 vector<vector<Halfedge*>> Mesh::Boundaries()
 {
+    vector<Halfedge*> boundary_e;
     vector<vector <Halfedge*>> boundaries;
+    int heIdx = 0;
+    for (int i = 0; i < halfedges.size(); i++)
+    {
+        if(halfedges[i].index != -1)
+        {
+            heIdx++;
+        }
+    }
+    cout << heIdx << endl;
+    // cout << halfedges.size() << endl;
+    // cout << halfedges[0].index << endl;
+    int archor = heIdx;
+    for(int i = 0; i < heIdx; i++)
+    {
+        if(halfedges[i].o == nullptr)
+        {
+            // cout << archor << endl;
+            Halfedge* e = &halfedges[archor];
+            e->o = &halfedges[i];
+            e->index = archor;
+            e->v = halfedges[i].prev->v;
 
-    // for(int i = 0; i < halfedges.size(); i++)
-    // {
-    //     if (halfedges[i].index == -1)
-    //         break;
-    //     if (halfedges.o == nullptr)
-    //     {
+            halfedges[i].o = e;
+            archor++;
+            boundary_e.push_back(e);
+        }
+    }
+    cout << archor << endl;
+    cout << boundary_e.size() << endl;
+    for (int i = 0; i < boundary_e.size(); i++)
+    {
+        int start = boundary_e[i]->index;  
+        for(int j = 0; j < boundary_e.size(); j++)
+        {
+            if (start == boundary_e[j]->o->v->index)
+            {
+                boundary_e[i]->next = boundary_e[j];
+                boundary_e[j]->prev = boundary_e[i];
+            }
+        }
+    }
 
-    //     }
-    // }
 
 
     return boundaries;
@@ -363,9 +395,10 @@ int main()
 
     cout << "input the mesh" << endl;
     // cin >> filename;
-    filename = "lilium.obj";
+    filename = "roof.obj";
     cout << "Loading the " << filename << endl;
     m.BuildFromObj(filename);
+    m.Boundaries();
     cout << "Result" << endl;
 
     m.ShowResult();
